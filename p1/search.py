@@ -1,3 +1,5 @@
+
+
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -17,6 +19,7 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
+from turtle import down
 import util
 
 class SearchProblem:
@@ -87,12 +90,40 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    from game import Directions
+    from util import Stack
+
+
+    up = Directions.NORTH
+    down = Directions.SOUTH
+    left = Directions.LEFT
+    rigth = Directions.RIGHT
+    visitados = set()
+    path = Stack()
+    frontier = Stack()
+
+    #Confere se o estado inicial é o objetivo
+    if(problem.isGoalState(problem.getStartState())):
+        return path
+    else: #Caso não seja, adiciona os sucessores na fronteira
+        for sucessor in problem.getSuccessors(problem.getStartState()):
+            frontier.push(sucessor)
     
+    while not(frontier.isEmpty()):
+        node = frontier.pop()
+        path = node[1]
+        if problem.isGoalState(node[0]):
+            break
+        if not(node in visitados):
+            visitados.add(node)
+            sucessores = problem.getSuccessors(node)
+            if not sucessores:
+                _ = path.pop()
+            else:
+                for nodo_filho in sucessores:
+                    frontier.push(nodo_filho[0])
 
-
-
-    util.raiseNotDefined()
-
+    
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
