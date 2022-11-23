@@ -111,9 +111,9 @@ def depthFirstSearch(problem: SearchProblem):
     
     while not(frontier.isEmpty()):
         node = frontier.pop()
-        path = node[1]
+        path = node[1]                         #Adiciona a direção do nodo avaliado ao caminho
         if problem.isGoalState(node[0]):
-            break
+            break                              #Se chegar nesse ponto significa que o caminho ta completo
         if not(node in visitados):
             visitados.add(node)
             sucessores = problem.getSuccessors(node)
@@ -122,8 +122,18 @@ def depthFirstSearch(problem: SearchProblem):
             else:
                 for nodo_filho in sucessores:
                     frontier.push(nodo_filho[0])
-
     
+    for aux in path:
+        if aux[1] == 'North':
+            aux[1] = up
+        if aux[1] == 'South':
+            aux[1] = down
+        if aux[1] == 'Left':
+            aux[1] = left;
+        if aux[1] == 'Right':
+            aux[1] = rigth;
+    return path
+
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
