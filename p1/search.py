@@ -90,59 +90,71 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    from game import Directions
     from util import Stack
 
-
-    up = Directions.NORTH
-    down = Directions.SOUTH
-    left = Directions.LEFT
-    rigth = Directions.RIGHT
     visitados = set()
-    path = Stack()
     frontier = Stack()
+    frontier.push([problem.getStartState(), list()])
 
-    #Confere se o estado inicial é o objetivo
-    if(problem.isGoalState(problem.getStartState())):
-        return path
-    else: #Caso não seja, adiciona os sucessores na fronteira
-        for sucessor in problem.getSuccessors(problem.getStartState()):
-            frontier.push(sucessor)
-    
     while not(frontier.isEmpty()):
         node = frontier.pop()
-        path = node[1]                         #Adiciona a direção do nodo avaliado ao caminho
         if problem.isGoalState(node[0]):
-            break                              #Se chegar nesse ponto significa que o caminho ta completo
-        if not(node in visitados):
-            visitados.add(node)
-            sucessores = problem.getSuccessors(node)
-            if not sucessores:
-                _ = path.pop()
-            else:
-                for nodo_filho in sucessores:
-                    frontier.push(nodo_filho[0])
-    
-    for aux in path:
-        if aux[1] == 'North':
-            aux[1] = up
-        if aux[1] == 'South':
-            aux[1] = down
-        if aux[1] == 'Left':
-            aux[1] = left;
-        if aux[1] == 'Right':
-            aux[1] = rigth;
-    return path
+            return node[1]             #Se chegar nesse ponto significa que o caminho ta completo
+        if not(node[0] in visitados):
+            visitados.add(node[0])
+            sucessores = problem.getSuccessors(node[0])
+            for nodo_filho in sucessores:
+                path = node[1].copy()       #Importante esse copy porque essa merda é igual ponteiro
+                path.append(nodo_filho[1]) 
+                frontier.push([nodo_filho[0], path]) #Guarda uma estrutura que representa o estado(nodo, caminho)
+    else:
+        return 0
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import Queue
+
+    visitados = set()
+    frontier = Queue()  #Politica que define se é BFS ou DFS
+    frontier.push([problem.getStartState(), list()])
+
+    while not(frontier.isEmpty()):
+        node = frontier.pop()
+        if problem.isGoalState(node[0]):
+            return node[1]             #Se chegar nesse ponto significa que o caminho ta completo
+        if not(node[0] in visitados):
+            visitados.add(node[0])
+            sucessores = problem.getSuccessors(node[0])
+            for nodo_filho in sucessores:
+                path = node[1].copy()       #Importante esse copy porque essa merda é igual ponteiro
+                path.append(nodo_filho[1]) 
+                frontier.push([nodo_filho[0], path]) #Guarda uma estrutura que representa o estado(nodo, caminho)
+    else:
+        return 0
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
+
+    visitados = set()
+    frontier = PriorityQueue()  #Politica que define se é BFS ou DFS
+    frontier.push([problem.getStartState(), list()], 1)
+
+    while not(frontier.isEmpty()):
+        node = frontier.pop()
+        if problem.isGoalState(node[0]):
+            return node[1]             #Se chegar nesse ponto significa que o caminho ta completo
+        if not(node[0] in visitados):
+            visitados.add(node[0])
+            sucessores = problem.getSuccessors(node[0])
+            for nodo_filho in sucessores:
+                path = node[1].copy()       #Importante esse copy porque essa merda é igual ponteiro
+                path.append(nodo_filho[1]) 
+                frontier.update([nodo_filho[0], path], nodo_filho[2]) #Guarda uma estrutura que representa o estado(nodo, caminho)
+    else:
+        return 0
 
 def nullHeuristic(state, problem=None):
     """
