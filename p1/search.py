@@ -89,7 +89,6 @@ def depthFirstSearch(problem: SearchProblem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    "*** YOUR CODE HERE ***"
     from util import Stack
 
     visitados = set()
@@ -112,7 +111,6 @@ def depthFirstSearch(problem: SearchProblem):
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
     from util import Queue
 
     visitados = set()
@@ -128,20 +126,22 @@ def breadthFirstSearch(problem: SearchProblem):
             sucessores = problem.getSuccessors(node[0])
             for nodo_filho in sucessores:
                 path = node[1].copy()       #Importante esse copy porque essa merda é igual ponteiro
-                path.append(nodo_filho[1]) 
+                path.append(nodo_filho[1])
                 frontier.push([nodo_filho[0], path]) #Guarda uma estrutura que representa o estado(nodo, caminho)
     else:
         return 0
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
     from util import PriorityQueue
 
     visitados = set()
     frontier = PriorityQueue()  #Politica que define se é BFS ou DFS
-    frontier.push([problem.getStartState(), list()], 1)
+    custo = 0
+    inicio = [problem.getStartState(), list(), custo]
 
+    #Começa o processo de busca
+    frontier.push(inicio, custo)
     while not(frontier.isEmpty()):
         node = frontier.pop()
         if problem.isGoalState(node[0]):
@@ -150,9 +150,10 @@ def uniformCostSearch(problem: SearchProblem):
             visitados.add(node[0])
             sucessores = problem.getSuccessors(node[0])
             for nodo_filho in sucessores:
+                custo = node[2] + nodo_filho[2]
                 path = node[1].copy()       #Importante esse copy porque essa merda é igual ponteiro
                 path.append(nodo_filho[1]) 
-                frontier.update([nodo_filho[0], path], nodo_filho[2]) #Guarda uma estrutura que representa o estado(nodo, caminho)
+                frontier.update([nodo_filho[0], path, custo], custo) #Guarda uma estrutura que representa o estado(nodo, caminho)
     else:
         return 0
 
@@ -165,9 +166,30 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
 
+    visitados = set()
+    frontier = PriorityQueue()  #Politica que define se é BFS ou DFS
+    custo = 0
+    inicio = problem.getStartState()
+
+    #Começa o processo de busca
+    frontier.push([inicio, list(), custo], heuristic(inicio, problem))
+    while not(frontier.isEmpty()):
+        node = frontier.pop()
+        if problem.isGoalState(node[0]):
+            return node[1]             #Se chegar nesse ponto significa que o caminho ta completo
+        if not(node[0] in visitados):
+            visitados.add(node[0])
+            sucessores = problem.getSuccessors(node[0])
+            for nodo_filho in sucessores:
+                custo = node[2] + nodo_filho[2]
+                path = node[1].copy()       #Importante esse copy porque essa merda é igual ponteiro
+                path.append(nodo_filho[1])
+                #Guarda uma estrutura que representa o estado(nodo, caminho, custo)
+                frontier.update([nodo_filho[0], path, custo], custo + heuristic(nodo_filho[0], problem))
+    else:
+        return 0
 
 # Abbreviations
 bfs = breadthFirstSearch
