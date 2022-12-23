@@ -163,40 +163,48 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        legalMoves = gameState.getLegalActions(self.index)
+        legalMoves = gameState.getLegalActions()    #Lista de Movimentos legais
+        #Cria uma lista com os estados sucessores
+        successors = [gameState.generateSuccessor(self.index, move) for move in legalMoves]
+        #De acordo com minmax, pontua cada estado sucessor
+        scores = [self.valor_minmax(successor, self.index + 1, self.depth) for successor in successors]
+        #Pega o melhor score, acha o indice e retorna o movimento correspondente
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        chosenIndex = random.choice(bestIndices)
 
-
-
-
-    def valor_minmax(self, gameState : GameState):
         
-        if self.index == 0:
-            return self.max_value(gameState)
+
+        return legalMoves[chosenIndex]
+
+    def valor_minmax(self, gameState : GameState, agente : int, depth : int):
+        if gameState.isWin() or gameState.isLose() or (depth == 0):
+            return self.evaluationFunction(gameState)
+        if agente == 0:
+            return self.max_value(gameState, agente, depth)
         else: 
-            return self.min_value(gameState)
+            return self.min_value(gameState, agente, depth)
 
 
-    def min_value(self, gameState : GameState):
-        min_v = 1000
-        legalMoves = gameState.getLegalActions(self.index)
-        for move in legalMoves:
-            successor = gameState.generateSuccessor(self.index, move)
-            min_v = min(min_v, self.valor_minmax(successor))
+    def min_value(self, gameState : GameState, agente : int, depth : int):
+        if agente ==  gameState.getNumAgents() - 1:
+            depth -= 1
+            newAgente = 0
+        else:
+            newAgente = agente + 1
+
+        legalMoves = gameState.getLegalActions(agente)
+        successors = [gameState.generateSuccessor(agente, move) for move in legalMoves]
+        scores = [self.valor_minmax(successor, newAgente, depth) for successor in successors]
         
-        return min_v
+        return min(scores)
 
-
-    def max_value(self, gameState : GameState):
-        max_v = -1000
-        legalMoves = gameState.getLegalActions(self.index)
-        for move in legalMoves:
-            successor = gameState.generateSuccessor(self.index, move)
-            max_v = max(max_v, self.valor_minmax(successor))
+    def max_value(self, gameState : GameState, agente : int, depth : int):
+        legalMoves = gameState.getLegalActions(agente)
+        successors = [gameState.generateSuccessor(agente, move) for move in legalMoves]
+        scores = [self.valor_minmax(successor, agente+1, depth) for successor in successors]
         
-        return max_v
-
-
-
+        return max(scores)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
