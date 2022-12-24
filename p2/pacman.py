@@ -83,7 +83,7 @@ class GameState:
     def getAndResetExplored():
         tmp = GameState.explored.copy()
         GameState.explored = set()
-        return tmpf
+        return tmp
     getAndResetExplored = staticmethod(getAndResetExplored)
 
     def getLegalActions(self, agentIndex=0):

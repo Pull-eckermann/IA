@@ -18,6 +18,7 @@ import random, util
 
 from game import Agent
 from pacman import GameState
+import math
 
 class ReflexAgent(Agent):
     """
@@ -173,8 +174,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
         chosenIndex = random.choice(bestIndices)
 
-        
-
         return legalMoves[chosenIndex]
 
     def valor_minmax(self, gameState : GameState, agente : int, depth : int):
@@ -216,7 +215,61 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        alpha = -math.inf
+        betha = math.inf
+        _, bestMove = self.valor_minmax(gameState, self.index, self.depth, alpha, betha)
+        return bestMove
+
+    def valor_minmax(self, gameState : GameState, agente : int, depth : int, alpha, betha):
+        if gameState.isWin() or gameState.isLose() or (depth == 0):
+            return self.evaluationFunction(gameState), None
+        if agente == 0:
+            return self.max_value(gameState, agente, depth, alpha, betha)
+        else: 
+            return self.min_value(gameState, agente, depth, alpha, betha)
+
+
+    def min_value(self, gameState : GameState, agente : int, depth : int, alpha, betha):
+        if agente ==  gameState.getNumAgents() - 1:
+            depth -= 1
+            newAgente = 0
+        else:
+            newAgente = agente + 1
+
+        worstScore = math.inf
+        worstMove = None
+
+        legalMoves = gameState.getLegalActions(agente)
+        for move in legalMoves:
+            successor = gameState.generateSuccessor(agente, move)
+            score, _ = self.valor_minmax(successor, newAgente, depth, alpha, betha)
+            if score < alpha:
+                return score, move
+            if score < worstScore:
+                worstScore = score
+                worstMove = move
+                if score < betha:
+                    betha = score
+        
+        return worstScore, worstMove
+
+    def max_value(self, gameState : GameState, agente : int, depth : int, alpha, betha):
+        bestScore = -math.inf
+        bestMove = None
+
+        legalMoves = gameState.getLegalActions(agente)
+        for move in legalMoves:
+            successor = gameState.generateSuccessor(agente, move)
+            score, _ = self.valor_minmax(successor, agente+1, depth, alpha, betha)
+            if score > betha:
+                return score, move
+            if score > bestScore:
+                bestScore = score
+                bestMove = move
+                if score > alpha:
+                    alpha = score
+        
+        return bestScore, bestMove
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -231,7 +284,49 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        legalMoves = gameState.getLegalActions()    #Lista de Movimentos legais
+        #Cria uma lista com os estados sucessores
+        successors = [gameState.generateSuccessor(self.index, move) for move in legalMoves]
+        #De acordo com minmax, pontua cada estado sucessor
+        scores = [self.valor_expecmax(successor, self.index + 1, self.depth) for successor in successors]
+        #Pega o melhor score, acha o indice e retorna o movimento correspondente
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        chosenIndex = random.choice(bestIndices)
+
+        return legalMoves[chosenIndex]
+
+    def valor_expecmax(self, gameState : GameState, agente : int, depth : int):
+        if gameState.isWin() or gameState.isLose() or (depth == 0):
+            return self.evaluationFunction(gameState)
+        if agente == 0:
+            return self.max_value(gameState, agente, depth)
+        else: 
+            return self.expec_value(gameState, agente, depth)
+
+
+    def expec_value(self, gameState : GameState, agente : int, depth : int):
+        if agente ==  gameState.getNumAgents() - 1:
+            depth -= 1
+            newAgente = 0
+        else:
+            newAgente = agente + 1
+
+        score = 0
+        legalMoves = gameState.getLegalActions(agente)
+        successors = [gameState.generateSuccessor(agente, move) for move in legalMoves]
+        for successor in successors:
+            prob = 1 / len(legalMoves)
+            score += prob * self.valor_expecmax(successor, newAgente, depth)
+        
+        return score
+
+    def max_value(self, gameState : GameState, agente : int, depth : int):
+        legalMoves = gameState.getLegalActions(agente)
+        successors = [gameState.generateSuccessor(agente, move) for move in legalMoves]
+        scores = [self.valor_expecmax(successor, agente+1, depth) for successor in successors]
+        
+        return max(scores)
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
@@ -241,7 +336,30 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pacPos = currentGameState.getPacmanPosition()   #Posição do Pacman
+    ghostPos = currentGameState.getGhostPositions() #Posição dos Fantasmas
+    foods = currentGameState.getFood().asList()     #Lista de comidas
+    numFoods = len(foods)                           #Numero de comidas
+
+    bestDisfood = 1                 
+    currentScore = currentGameState.getScore()
+    #Coloca em uma lista as distâncias entre o pacman e as comidas
+    food_distances = [manhattanDistance(pacPos, food_position) for food_position in foods]
+
+    if numFoods > 0:
+        bestDisfood = min(food_distances)
+
+    #Se a distancia entre pacman e um ghost for pequena,
+    #a melhor distancia pra uma comida desvaloriza muito
+    for ghost in ghostPos:
+        ghostDis = manhattanDistance(pacPos, ghost)
+        if ghostDis <= 3:
+            bestDisfood = 10000
+
+    caracteristicas = ((1.0/bestDisfood), currentScore, numFoods)
+    pesos = (5, 100, -50)
+
+    return sum([caracteristica * peso for caracteristica, peso in zip(caracteristicas, pesos)])
 
 # Abbreviation
 better = betterEvaluationFunction
